@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+
+  <!-- AUTH GUARD -->
+  <script>
+    if (!localStorage.getItem("token")) {
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <style>
+    :root {
+      --glass: rgba(25, 25, 25, 0.55);
+      --border: rgba(255, 255, 255, 0.08);
+
+      --text-main: #f2f2f2;
+      --text-muted: #bdbdbd;
+
+      --accent-amber: #f4a938;
+      --accent-sage: #86bfa3;
+      --accent-logout: #e06b6b;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", Arial, sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
+
+      background-image: url("images/dash.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    /* ===== NAVBAR ===== */
+    nav {
+      display: flex;
+      padding: 24px 40px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav button {
+      background: transparent;
+      border: 1px solid var(--accent-logout);
+      color: var(--accent-logout);
+      padding: 8px 18px;
+      border-radius: 22px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      
+    }
+
+    nav button:hover {
+      background: var(--accent-logout);
+      color: white;
+      box-shadow: 0 0 18px rgba(224, 107, 107, 0.45);
+    }
+    nav h1{
+      font-style:italic ;
+      font-weight: bold;
+      font-family: cursive;
+      font-size:50px;
+      margin-left: 600px;
+    }
+
+    /* ===== MAIN ===== */
+    main {
+      max-width: 1200px;
+      margin: 40px auto 0;
+      padding: 0 40px;
+    }
+
+    /* ===== STATS ===== */
+    .stats {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 50px;
+    }
+
+    .stat {
+      flex: 1;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 28px 32px;
+      transition: transform 0.25s ease;
+    }
+
+    .stat:hover {
+      transform: translateY(-4px);
+    }
+
+    .stat h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-muted);
+      letter-spacing: 0.4px;
+    }
+
+    .stat p {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 600;
+    }
+
+    .stat.streak p {
+      color: var(--accent-amber);
+    }
+
+    .stat.focus p {
+      color: var(--accent-sage);
+    }
+
+    /* ===== FEATURES ===== */
+    .grid {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      flex: 1;
+      min-width: 200px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 26px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.25s ease;
+      text-align: center;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: var(--accent-amber);
+      box-shadow: 0 0 20px rgba(244, 169, 56, 0.25);
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>focusforge</h1>
+  <button onclick="logout()">Logout</button>
+</nav>
+
+
+
+<main>
+
+  <!-- STATS -->
+  <section class="stats">
+    <div class="stat streak">
+      <h3>🔥 Streak</h3>
+      <p id="streak">0 days</p>
+    </div>
+
+    <div class="stat focus">
+      <h3>⏱ Total Focus</h3>
+      <p id="focus">0 mins</p>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="grid">
+    <div class="card" onclick="go('planner.html')">🗓 Study Planner</div>
+    <div class="card" onclick="go('todo.html')">✅ To-Do</div>
+    <div class="card" onclick="go('pomodoro.html')">⏱ Pomodoro</div>
+    <div class="card" onclick="go('blog.html')">✍ Blog</div>
+  </section>
+
+</main>
+
+<script>
+async function loadDashboard() {
+  const res = await fetch("http://localhost:5000/api/user/me", {
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const data = await res.json();
+
+  document.getElementById("streak").innerText =
+    data.streak + " days";
+
+  document.getElementById("focus").innerText =
+    data.totalFocusMinutes + " mins";
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+}
+
+function go(page) {
+  window.location.href = page;
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>

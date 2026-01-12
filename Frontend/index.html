@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Study Planner</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+       display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      background-image: url(images/bg.png);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .box {
+      padding: 80px;
+      border-radius: 22px;
+      text-align: center;
+      width: 420px;
+      margin-top:380px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      border: white;
+    }
+    .login {
+      background: black;
+      color: white;
+    }
+    .register {
+      background:black;
+      color:white;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <button class="login" onclick="goLogin()">Login</button>
+    <button class="register" onclick="goRegister()">Register</button>
+  </div>
+
+  <script>
+    function goLogin() {
+      window.location.href = "login.html";
+    }
+    function goRegister() {
+      window.location.href = "register.html";
+    }
+  </script>
+
+</body>
+</html>

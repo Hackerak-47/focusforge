@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pomodoro</title>
+
+<style>
+:root {
+  --glass: rgba(25,25,25,.55);
+  --border: rgba(255,255,255,.08);
+  --text-main: #f2f2f2;
+  --accent: #f4a938;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, Arial, sans-serif;
+  background: url("images/pom.jpeg") center / cover no-repeat;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 🔝 Top Bar */
+.top-bar {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  gap:550px
+}
+
+.title {
+  margin-left: 40px;
+  font-size: 48px;
+  font-style: italic;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 8px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* 🧊 Main Card */
+.container {
+  width: 460px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 50px 24px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  margin-top: 60px;
+}
+
+/* Text */
+h2 {
+  margin: 10px 0;
+}
+
+.phase {
+  font-size: 14px;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+/* ⏱ Timer Circle */
+.circle {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 8px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46px;
+  margin: 20px auto;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.controls input,
+.controls button {
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  margin: 6px;
+  font-size: 14px;
+}
+
+.controls input {
+  width: 140px;
+}
+
+button {
+  background: var(--accent);
+  color: #000;
+  cursor: pointer;
+  min-width: 90px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* 📱 Mobile */
+@media (max-width: 420px) {
+  .container {
+    width: 92%;
+  }
+
+  .circle {
+    width: 200px;
+    height: 200px;
+    font-size: 40px;
+  }
+}
+</style>
+
+<script>
+  if (!localStorage.getItem("token")) {
+    window.location.href = "login.html";
+  }
+</script>
+
+</head>
+
+<body>
+  <div class="top-bar">
+  <h2 class="title">Pomodoro</h2>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+
+</div>
+<div class="container">
+
+<h2>Pomodoro</h2>
+<div class="phase" id="phase">🔥 Focus</div>
+
+<div class="circle" id="time">25:00</div>
+
+<div class="controls">
+  <input type="number" id="focusMinutes" placeholder="Focus minutes" min="1" max="300" style="padding:10px;border-radius:12px;border:none;margin:6px;font-size:14px;width:140px;">
+  <input type="number" id="breakMinutes" placeholder="Break minutes" min="1" max="60" style="padding:10px;border-radius:12px;border:none;margin:6px;font-size:14px;width:140px;">
+</div>
+
+
+<div class="controls">
+  <button onclick="start()">Start</button>
+  <button onclick="pause()">Pause</button>
+  <button onclick="reset()">Reset</button>
+</div>
+
+</div>
+<script>let timer = null;
+let remaining = null;
+let isFocus = true;
+let startedAt = null;
+
+const timeEl = document.getElementById("time");
+const phaseEl = document.getElementById("phase");
+const focusInput = document.getElementById("focusMinutes");
+const breakInput = document.getElementById("breakMinutes");
+
+function start() {
+  if (timer) return;
+
+  const focusVal = parseInt(focusInput.value);
+  const breakVal = parseInt(breakInput.value);
+
+  // Use defaults if user hasn't entered anything
+  const focusMinutes = focusVal && !isNaN(focusVal) ? focusVal : 25;
+  const breakMinutes = breakVal && !isNaN(breakVal) ? breakVal : 5;
+
+  if (remaining ==null) {
+    remaining = (isFocus ? focusMinutes : breakMinutes) * 60;
+  }
+
+  if ( isFocus  && !startedAt) {
+  startedAt = Date.now();
+}
+
+
+  timer = setInterval(() => {
+    remaining--;
+    render();
+
+    if (remaining <= 0) {
+      clearInterval(timer);
+      timer = null;
+
+      if (isFocus) completeFocus();
+      isFocus = !isFocus;
+
+      remaining = null;
+      phaseEl.innerText = isFocus ? "🔥 Focus" : "☕ Break";
+    }
+  }, 1000);
+}
+
+function pause() {
+  if (!timer) return;
+  clearInterval(timer);
+  timer = null;
+ 
+}
+
+function reset() {
+  if (timer) clearInterval(timer);
+  timer = null;
+  remaining = null;
+  isFocus = true;
+  startedAt = null;
+  phaseEl.innerText = "🔥 Focus";
+  render();
+}
+
+function render() {
+  const totalSeconds = remaining ?? 25 * 60; // fallback if null
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  timeEl.innerText = `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+async function completeFocus() {
+  if (!startedAt) return;
+
+  const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+  startedAt = null;
+ console.log("Focus completed, minutes:", Math.floor(elapsed / 60));
+
+  if (elapsed < 60) return;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/focus/complete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify({
+        durationMinutes: Math.floor(elapsed / 60),
+        taskId: null
+      })
+    });
+
+    if (!res.ok) {
+      console.error("Focus save failed");
+    }
+  } catch (err) {
+    console.error("Network error", err);
+  }
+}
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+}
+
+
+render();
+</script>
+</body>
+</html>

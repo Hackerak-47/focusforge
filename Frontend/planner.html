@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Study Planner</title>
+  <style>
+    :root {
+      --glass: rgba(25, 25, 25, 0.55);
+      --border: rgba(255, 255, 255, 0.08);
+      --text-main: #f2f2f2;
+      --text-muted: #bdbdbd;
+      --accent-amber: #f4a938;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", Arial, sans-serif;
+      color: var(--text-main);
+      background-image: url("images/sb.jpeg");
+      background-size:cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-weight: 500;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .form {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    input {
+      flex: 1;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 12px 14px;
+      border-radius: 14px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    input::placeholder {
+      color: var(--text-muted);
+    }
+
+    input:focus {
+      border-color: var(--accent-amber);
+    }
+
+    button {
+      background: var(--accent-amber);
+      border: none;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #1a1a1a;
+      font-weight: 500;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 18px rgba(244, 169, 56, 0.45);
+    }
+
+    .plan {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .plan-item {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      border-radius: 16px;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .plan-item span {
+      color: var(--text-muted);
+      margin-right: 12px;
+    }
+
+    .plan-item button {
+      background: transparent;
+      color: var(--accent-amber);
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Study Planner</h2>
+    <div class="form">
+      <input id="subject" placeholder="Subject">
+      <input id="hours" type="number" placeholder="Hours">
+      <button onclick="addPlan()">Add</button>
+    </div>
+    <div class="plan" id="planList"></div>
+  </div>
+
+ <script>
+  // Get current userId from localStorage token (assumes token has userId in payload)
+  const token = localStorage.getItem("token");
+  let userId = null;
+
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1])); // decode JWT payload
+      userId = payload.userId || payload.id; // handle both cases
+    } catch (err) {
+      console.error("Invalid token:", err);
+    }
+  }
+
+  // Use a per-user key
+  const storageKey = `studyPlans_${userId}`;
+  let plans = JSON.parse(localStorage.getItem(storageKey) || "[]");
+
+  const planList = document.getElementById("planList");
+  const subjectInput = document.getElementById("subject");
+  const hoursInput = document.getElementById("hours");
+
+  function savePlans() {
+    localStorage.setItem(storageKey, JSON.stringify(plans));
+  }
+
+  function renderPlans() {
+    planList.innerHTML = "";
+    plans.forEach((plan, index) => {
+      const div = document.createElement("div");
+      div.className = "plan-item";
+      div.innerHTML = `
+        <div>📘 ${plan.subject}</div>
+        <span>${plan.hours} hrs</span>
+        <div>
+          <button onclick="editPlan(${index})">Edit</button>
+          <button onclick="deletePlan(${index})">Delete</button>
+        </div>
+      `;
+      planList.appendChild(div);
+    });
+  }
+
+  function addPlan() {
+    const subject = subjectInput.value.trim();
+    const hours = hoursInput.value.trim();
+    if (!subject || !hours) return;
+
+    plans.push({ subject, hours });
+    savePlans();
+    renderPlans();
+
+    subjectInput.value = "";
+    hoursInput.value = "";
+  }
+
+  function deletePlan(index) {
+    plans.splice(index, 1);
+    savePlans();
+    renderPlans();
+  }
+
+  function editPlan(index) {
+    const plan = plans[index];
+    subjectInput.value = plan.subject;
+    hoursInput.value = plan.hours;
+
+    plans.splice(index, 1);
+    renderPlans();
+  }
+
+  // Initial render
+  renderPlans();
+</script>
+
+</body>
+</html>

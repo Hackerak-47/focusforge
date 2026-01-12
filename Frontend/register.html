@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register</title>
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content:flex-end;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-image: url(images/bg.png);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+       box-sizing: border-box;
+    }
+
+.card {
+  background: #1f1f1f;
+  padding: 30px;
+  border-radius: 10px;
+  width: 380px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  margin-left: 30px;
+  margin-right: 50px;
+}
+
+input,
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 6px;
+  border: none;
+  display: block;
+   box-sizing: border-box;
+}
+
+button {
+  background: black;
+  color: white;
+  cursor: pointer;
+  align-items: center;
+}
+input{
+  margin-right: 20px;
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Create Account</h2>
+
+   <input type="text" id="name" placeholder="Name">
+   <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+
+
+    <button onclick="register()">Register</button>
+  </div>
+
+  <script>
+async function register() {
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  if (!name || !email || !password) {
+    alert("All fields are required");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message);
+      return;
+    }
+
+    alert("Registered successfully!");
+    window.location.href = "login.html";
+
+  } catch (err) {
+    alert("Server error");
+  }
+}
+</script>
+
+</body>
+</html>

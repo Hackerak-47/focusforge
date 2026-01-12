@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do List</title>
+
+  <!-- AUTH GUARD -->
+  <script>
+    if (!localStorage.getItem("token")) {
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <style>
+    :root {
+      --glass: rgba(25, 25, 25, 0.55);
+      --border: rgba(255, 255, 255, 0.08);
+      --text-main: #f2f2f2;
+      --text-muted: #bdbdbd;
+      --accent-amber: #f4a938;
+      --accent-logout: #e06b6b;
+      --accent-red: #ef4444;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", Arial, sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
+      background-image: url("images/todo.jpeg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 80px;
+    }
+
+    nav {
+      display: flex;
+      justify-content: flex-end;
+      padding: 24px 40px;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 10;
+    }
+
+    nav button {
+      background: transparent;
+      border: 1px solid var(--accent-logout);
+      color: var(--accent-logout);
+      padding: 8px 18px;
+      border-radius: 22px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    nav button:hover {
+      background: var(--accent-logout);
+      color: white;
+      box-shadow: 0 0 18px rgba(224, 107, 107, 0.45);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 50px;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-weight: 500;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.35);
+      color: var(--text-main);
+      outline: none;
+    }
+
+    input::placeholder {
+      color: var(--text-muted);
+    }
+
+    button.add-btn {
+      background: var(--accent-amber);
+      border: none;
+      color: #1a1a1a;
+      padding: 12px 18px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button.add-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 18px rgba(244, 169, 56, 0.45);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 14px;
+      margin-top: 10px;
+    }
+
+    li button {
+      background: var(--accent-red);
+      border: none;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    li button:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <button onclick="logout()">Logout</button>
+</nav>
+
+<div class="container">
+  <h2>To-Do List</h2>
+
+  <div class="form">
+    <input id="taskInput" placeholder="New task">
+    <button class="add-btn" id="addBtn">Add</button>
+  </div>
+
+  <ul id="taskList"></ul>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+const taskInput = document.getElementById("taskInput");
+const taskList = document.getElementById("taskList");
+const addBtn = document.getElementById("addBtn");
+
+// Event listener for Add button
+addBtn.addEventListener("click", addTask);
+
+// Load tasks from backend
+async function loadTasks() {
+  try {
+    const res = await fetch("http://localhost:5000/api/tasks", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    if (!res.ok) throw new Error("Failed to load tasks");
+    const data = await res.json();
+    renderTasks(data);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Render tasks
+function renderTasks(tasks) {
+  taskList.innerHTML = "";
+  tasks.forEach(task => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span>✅ ${task.content}</span>
+      <button onclick="deleteTask('${task._id}')">Del</button>
+    `;
+    taskList.appendChild(li);
+  });
+}
+
+// Add task
+async function addTask() {
+  const content = taskInput.value.trim();
+  if (!content) return;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({ content })
+    });
+    if (!res.ok) throw new Error("Failed to add task");
+    taskInput.value = "";
+    loadTasks();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// Delete task
+async function deleteTask(id) {
+  try {
+    const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: "Bearer " + token }
+    });
+    if (!res.ok) throw new Error("Failed to delete task");
+    loadTasks();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+}
+
+// Initial load
+loadTasks();
+</script>
+
+</body>
+</html>
