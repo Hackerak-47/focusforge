@@ -3,7 +3,7 @@ const Task = require("../models/Task");
 const auth = require("../middleware/authMiddleware");
 const router = express.Router();
 
-// GET all tasks for the logged-in user
+
 router.get("/", auth, async (req, res) => {
   try {
     const tasks = await Task.find({ user: req.userId }).sort({ createdAt: -1 });
@@ -14,11 +14,11 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// CREATE new task
+
 router.post("/", auth, async (req, res) => {
-  console.log("Token from headers:", req.headers.authorization); // <-- log token
-  console.log("req.userId from middleware:", req.userId);        // <-- log userId
-  console.log("req.body.content:", req.body.content);           // <-- log task content
+  console.log("Token from headers:", req.headers.authorization); 
+  console.log("req.userId from middleware:", req.userId);        
+  console.log("req.body.content:", req.body.content);           
 
   try {
     const task = await Task.create({
@@ -33,15 +33,19 @@ router.post("/", auth, async (req, res) => {
 });
 
 
-// DELETE task by id
 router.delete("/:id", auth, async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id, user: req.userId });
-    if (!task) return res.status(404).json({ message: "Task not found" });
-    await task.remove();
+    const task = await Task.findOneAndDelete({
+      _id: req.params.id,
+      user: req.userId
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
     res.json({ message: "Task deleted" });
-  } catch (err) {
-    console.error(err);
+  }   catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });

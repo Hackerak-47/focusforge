@@ -4,7 +4,7 @@ const auth = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// DASHBOARD STATS
+
 router.get("/me", auth, async (req, res) => {
   const user = await User.findById(req.userId).select("-password");
 

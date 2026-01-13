@@ -4,7 +4,6 @@ const auth = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// CREATE BLOG
 router.post("/", auth, async (req, res) => {
   try {
     const blog = await Blog.create({

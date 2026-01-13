@@ -4,7 +4,7 @@ const auth = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// ADD PLAN
+
 router.post("/", auth, async (req, res) => {
   const plan = await Planner.create({
     user: req.user.id,
@@ -16,7 +16,7 @@ router.post("/", auth, async (req, res) => {
   res.json(plan);
 });
 
-// GET PLANS
+
 router.get("/", auth, async (req, res) => {
   const plans = await Planner.find({ user: req.userId })
     .sort({ date: 1 });

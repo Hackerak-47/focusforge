@@ -6,7 +6,6 @@ const User = require("../models/User");
 const auth = require("../middleware/authMiddleware");
 
 
-// ▶️ START A SESSION (optional but useful)
 router.post("/start", auth, async (req, res) => {
   const { taskId } = req.body;
 
@@ -25,18 +24,17 @@ router.post("/complete", auth, async (req, res) => {
   const { durationMinutes } = req.body;
   const user = await User.findById(req.userId);
 
-  // Update total minutes & sessions
   user.totalFocusMinutes += durationMinutes;
   user.totalSessions += 1;
 
-  // STREAK LOGIC
+
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // normalize to start of day
+  today.setHours(0, 0, 0, 0); 
   const lastFocus = user.lastFocusDate ? new Date(user.lastFocusDate) : null;
   if (lastFocus) lastFocus.setHours(0, 0, 0, 0);
 
   if (!lastFocus || today > lastFocus) {
-    // Only increment streak if last focus was before today
+    
     user.streak += 1;
     user.lastFocusDate = new Date();
   }
@@ -49,7 +47,7 @@ router.post("/complete", auth, async (req, res) => {
 
 
 
-// 📊 GET USER FOCUS HISTORY
+
 router.get("/history", auth, async (req, res) => {
   const sessions = await Pomodoro.find({ user: req.userId })
     .sort({ createdAt: -1 })
@@ -59,7 +57,7 @@ router.get("/history", auth, async (req, res) => {
 });
 
 
-// 📈 TODAY'S FOCUS TIME
+
 router.get("/today", auth, async (req, res) => {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
